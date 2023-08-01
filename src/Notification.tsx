@@ -105,30 +105,19 @@ class Notification extends Component<NotificationProps, NotificationState> {
     this.setState((previousState: NotificationState) => {
       const { notices } = previousState;
       const noticeIndex = notices.map((v) => v.notice.key).indexOf(key);
-      const updatedNotices = notices.concat();
+      let updatedNotices = notices.concat();
       if (noticeIndex !== -1) {
         updatedNotices.splice(noticeIndex, 1, { notice, holderCallback });
       } else {
-        if (maxCount && notices.length >= maxCount) {
-          // XXX, use key of first item to update new added (let React to move exsiting
-          // instead of remove and mount). Same key was used before for both a) external
-          // manual control and b) internal react 'key' prop , which is not that good.
-          // eslint-disable-next-line no-param-reassign
-
-          // zombieJ: Not know why use `updateKey`. This makes Notice infinite loop in jest.
-          // Change to `updateMark` for compare instead.
-          // https://github.com/react-component/notification/commit/32299e6be396f94040bfa82517eea940db947ece
-          notice.key = updatedNotices[0].notice.key as React.Key;
-          notice.updateMark = getUuid();
-
-          // zombieJ: That's why. User may close by key directly.
-          // We need record this but not re-render to avoid upper issue
-          // https://github.com/react-component/notification/issues/129
-          notice.userPassKey = key;
-
-          updatedNotices.shift();
-        }
+        /**
+         * [关联文件](https://github.com/react-component/notification/blob/3af048163422bb03f044e24f5d47e68e8953ca74/src/Notifications.tsx#L77)
+         * [关联 commit](https://github.com/react-component/notification/commit/2a2dd67c1cf8897700b247a4954bc0ac0ee8178d)
+         */
         updatedNotices.push({ notice, holderCallback });
+
+        if (maxCount && notices.length >= maxCount) {
+          updatedNotices = updatedNotices.slice(-maxCount);
+        }
       }
       return {
         notices: updatedNotices,

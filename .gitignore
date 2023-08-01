@@ -35,4 +35,5 @@ package-lock.json
 .umi
 .umi-production
 .umi-test
-.env.local 
+.env.local
+.doc
