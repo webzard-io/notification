@@ -30,11 +30,16 @@ export interface NoticeProps {
   visible?: boolean;
 }
 
-export default class Notice extends Component<NoticeProps> {
+export default class Notice extends Component<NoticeProps, { closeBeenExecuted: boolean }> {
   static defaultProps = {
     onClose() {},
     duration: 1.5,
   };
+
+  constructor(props) {
+    super(props);
+    this.state = { closeBeenExecuted: false };
+  }
 
   closeTimer: number | null = null;
 
@@ -52,9 +57,16 @@ export default class Notice extends Component<NoticeProps> {
       this.restartCloseTimer();
     }
   }
-
+  /**
+   * 更新了 componentWillUnmount 的逻辑，由于 batchMessage 依赖了 onClose ，但是默认只有定时器关闭可以触发 onClose。
+   * 所以增加组件关闭时，也触发 onClose。
+   * 如果没有 onClose batchMessage 内部状态会一直处于 batch，导致后续不在 batch 条件内的消息以 batch 形式发出。
+   */
   componentWillUnmount() {
     this.clearCloseTimer();
+    if (!this.state.closeBeenExecuted) {
+      this.close();
+    }
   }
 
   close = (e?: React.MouseEvent<HTMLAnchorElement>) => {
@@ -65,6 +77,9 @@ export default class Notice extends Component<NoticeProps> {
     const { onClose, noticeKey } = this.props;
     if (onClose) {
       onClose(noticeKey);
+      this.setState({
+        closeBeenExecuted: true,
+      });
     }
   };
 

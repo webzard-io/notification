@@ -1,6 +1,6 @@
 {
-  "name": "rc-notification",
-  "version": "4.6.0",
+  "name": "@cloudtower/rc-notification",
+  "version": "4.6.1",
   "description": "notification ui component for react",
   "engines": {
     "node": ">=8.x"
